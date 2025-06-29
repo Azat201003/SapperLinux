@@ -5,138 +5,113 @@
 #include "Game.cpp"
 #include <cmath>
 
-void numberRend(int xPos, int yPos, int num, float red, float green, float blue);
+struct Color {
+    float red;
+    float green;
+    float blue;
+};
+
+void numberRend(int xPos, int yPos, int num, Color color);
 void flagRend(int xPos, int yPos);
-void tileRend(int xPos, int yPos, float red, float green, float blue, bool mine);
+void tileRend(int xPos, int yPos, Color color, bool mine);
 void numberColorController(int xPos, int yPos);
 
-void tileRendController(int xPos, int yPos) // Контроллер который определяет как рендерить ячейку
+enum Mode {
+    GREEN,
+    RED,
+    GRAY
+};
+
+
+void tileRendColorized(int xPos, int yPos, Color color) {
+    switch (Field[yPos][xPos].doType)
+    {
+    case OPENED:
+        switch (Field[yPos][xPos].tileType) {
+        case MINE:
+            tileRend(xPos, yPos, color, true);
+            break;
+        case EMPTY:
+            tileRend(xPos, yPos, color, false);
+            numberColorController(xPos, yPos);
+            break;
+        }
+        break;
+    case FLAG:
+        tileRend(xPos, yPos, color, false);
+        flagRend(xPos, yPos);
+        break;
+    case NONE:
+        tileRend(xPos, yPos, color, false);
+        break;
+    }
+}
+
+void tileRendController(int xPos, int yPos, Mode mode) // Контроллер который определяет как рендерить ячейку
 {
-    Tile currentTile = Field[yPos][xPos];
-    if (fail)
-    {
-        if (Field[yPos][xPos].open)
-        {
-            if (Field[yPos][xPos].mine)
-            {
-                tileRend(xPos, yPos, 0.7f, 0.2f, 0.2f, true);
-            }
-            else
-            {
-                tileRend(xPos, yPos, 0.7f, 0.2f, 0.2f, false);
-                numberColorController(xPos, yPos);
-            }
-        }
-        else if (Field[yPos][xPos].flag)
-        {
-            tileRend(xPos, yPos, 1.0f, 0.2f, 0.2f, false);
-            flagRend(xPos, yPos);
-        }
-        else
-        {
-            tileRend(xPos, yPos, 1.0f, 0.2f, 0.2f, false);
-        }
-    }
-    else if (win)
-    {
-        if (Field[yPos][xPos].open)
-        {
-            if (Field[yPos][xPos].mine)
-            {
-                tileRend(xPos, yPos, 0.2f, 0.7f, 0.2f, true);
-            }
-            else
-            {
-                tileRend(xPos, yPos, 0.2f, 0.7f, 0.2f, false);
-                numberColorController(xPos, yPos);
-            }
-        }
-        else if (Field[yPos][xPos].flag)
-        {
-            tileRend(xPos, yPos, 0.2f, 1.0f, 0.2f, false);
-            flagRend(xPos, yPos);
-        }
-        else
-        {
-            tileRend(xPos, yPos, 0.2f, 1.0f, 0.2f, false);
-        }
-    }
-    else
-    {
-        if (Field[yPos][xPos].open)
-        {
-            if (Field[yPos][xPos].mine)
-            {
-                tileRend(xPos, yPos, 0.7f, 0.7f, 0.7f, true);
-            }
-            else
-            {
-                tileRend(xPos, yPos, 0.7f, 0.7f, 0.7f, false);
-                numberColorController(xPos, yPos);
-            }
-        }
-        else if (Field[yPos][xPos].flag)
-        {
-            tileRend(xPos, yPos, 1.0f, 1.0f, 1.0f, false);
-            flagRend(xPos, yPos);
-        }
-        else
-        {
-            tileRend(xPos, yPos, 1.0f, 1.0f, 1.0f, false);
-        }
+    switch (mode) {
+    case RED:
+        tileRendColorized(xPos, yPos, Color{.7f, .2f, .2f});
+        break;
+    case GREEN:
+        tileRendColorized(xPos, yPos, Color{.2f, 1.f, .2f});
+        break;
+    case GRAY:
+        tileRendColorized(xPos, yPos, Color{1.f, 1.f, 1.f});
+        break;
     }
 }
 
 void numberColorController(int xPos, int yPos)
 { // Контроллер который определяет как рендерить цвет числа
-    int num = Field[yPos][xPos].minesNearby;
+    int num = Field[yPos][xPos].minesNearbyCount;
     switch (num)
     {
     case 1:
-        numberRend(xPos, yPos, num, 0.0f, 0.0f, 0.7f);
+        numberRend(xPos, yPos, num, Color{0.0f, 0.0f, 0.7f});
         break;
     case 2:
-        numberRend(xPos, yPos, num, 0.0f, 0.7f, 0.7f);
+        numberRend(xPos, yPos, num, Color{0.0f, 0.7f, 0.7f});
         break;
     case 3:
-        numberRend(xPos, yPos, num, 0.0f, 0.7f, 0.0f);
+        numberRend(xPos, yPos, num, Color{0.0f, 0.7f, 0.0f});
         break;
     case 4:
-        numberRend(xPos, yPos, num, 0.35f, 0.7f, 0.0f);
+        numberRend(xPos, yPos, num, Color{0.35f, 0.7f, 0.0f});
         break;
     case 5:
-        numberRend(xPos, yPos, num, 0.7f, 0.7f, 0.0f);
+        numberRend(xPos, yPos, num, Color{0.7f, 0.7f, 0.0f});
         break;
     case 6:
-        numberRend(xPos, yPos, num, 0.7f, 0.35f, 0.0f);
+        numberRend(xPos, yPos, num, Color{0.7f, 0.35f, 0.0f});
         break;
     case 7:
-        numberRend(xPos, yPos, num, 0.7f, 0.0f, 0.0f);
+        numberRend(xPos, yPos, num, Color{0.7f, 0.0f, 0.0f});
         break;
     case 8:
-        numberRend(xPos, yPos, num, 0.4f, 0.0f, 0.0f);
+        numberRend(xPos, yPos, num, Color{0.4f, 0.0f, 0.0f});
         break;
     }
 }
 
-void tileRend(int xPos, int yPos, float red, float green, float blue, bool mine) // Рендер ячейки
+void tileRend(int xPos, int yPos, Color color, bool mine) // Рендер ячейки
 {
     glLoadIdentity();
     glScalef(1.0f / MAP_WIGTH * 2, 1.0f / MAP_HEIGHT * 2, 1.0f);
     glTranslatef(xPos - MAP_WIGTH / 2, yPos - MAP_HEIGHT / 2, 1.0f);
     glScalef(0.5f, 0.5f, 1.0f);
     glBegin(GL_TRIANGLES);
-    glColor3f(red - 0.2f, green - 0.2f, blue - 0.2f);
+    glColor3f(color.red - 0.2f, color.green - 0.2f, color.blue - 0.2f);
     glVertex2f(-1.0f, -1.0f);
-    glColor3f(red - 0.1f, green - 0.1f, blue - 0.1f);
+    glColor3f(color.red - 0.1f, color.green - 0.1f, color.blue - 0.1f);
     glVertex2f(-1.0f, 1.0f);
-    glColor3f(red, green, blue);
+    glColor3f(color.red, color.green, color.blue);
     glVertex2f(1.0f, 1.0f);
-    glColor3f(red - 0.2f, green - 0.2f, blue - 0.2f);
+    glColor3f(color.red - 0.2f, color.green - 0.2f, color.blue - 0.2f);
     glVertex2f(-1.0f, -1.0f);
-    glColor3f(red - 0.1f, green - 0.1f, blue - 0.1f);
+    glColor3f(color.red - 0.1f, color.green - 0.1f, color.blue - 0.1f);
     glVertex2f(1.0f, -1.0f);
-    glColor3f(red, green, blue);
+    glColor3f(color.red, color.green, color.blue);
     glVertex2f(1.0f, 1.0f);
     if (mine)
     {
@@ -191,7 +166,7 @@ void flagRend(int xPos, int yPos) // Рендер флага
     glEnd();
 }
 
-void numberRend(int xPos, int yPos, int num, float red, float green, float blue) // Рендер числа
+void numberRend(int xPos, int yPos, int num, Color color) // Рендер числа
 {
     glLoadIdentity();
     glScalef(1.0f / MAP_WIGTH * 2, 1.0f / MAP_HEIGHT * 2, 1.0f);
@@ -200,107 +175,107 @@ void numberRend(int xPos, int yPos, int num, float red, float green, float blue)
     glBegin(GL_TRIANGLES);
     if (num != 1 && num != 0 && num != 7)
     {
-        glColor3f(red, green, blue);
+        glColor3f(color.red, color.green, color.blue);
         glVertex2f(-0.5f, -0.1f);
-        glColor3f(red, green, blue);
+        glColor3f(color.red, color.green, color.blue);
         glVertex2f(0.5f, -0.1f);
-        glColor3f(red, green, blue);
+        glColor3f(color.red, color.green, color.blue);
         glVertex2f(0.5f, 0.1f);
-        glColor3f(red, green, blue);
+        glColor3f(color.red, color.green, color.blue);
         glVertex2f(-0.5f, -0.1f);
-        glColor3f(red, green, blue);
+        glColor3f(color.red, color.green, color.blue);
         glVertex2f(-0.5f, 0.1f);
-        glColor3f(red, green, blue);
+        glColor3f(color.red, color.green, color.blue);
         glVertex2f(0.5f, 0.1f);
     }
     if (num != 1 && num != 4 && num != 7)
     {
-        glColor3f(red, green, blue);
+        glColor3f(color.red, color.green, color.blue);
         glVertex2f(-0.5f, -0.7f);
-        glColor3f(red, green, blue);
+        glColor3f(color.red, color.green, color.blue);
         glVertex2f(0.5f, -0.7f);
-        glColor3f(red, green, blue);
+        glColor3f(color.red, color.green, color.blue);
         glVertex2f(0.5f, -0.9f);
-        glColor3f(red, green, blue);
+        glColor3f(color.red, color.green, color.blue);
         glVertex2f(-0.5f, -0.7f);
-        glColor3f(red, green, blue);
+        glColor3f(color.red, color.green, color.blue);
         glVertex2f(-0.5f, -0.9f);
-        glColor3f(red, green, blue);
+        glColor3f(color.red, color.green, color.blue);
         glVertex2f(0.5f, -0.9f);
     }
     if (num != 1 && num != 4)
     {
-        glColor3f(red, green, blue);
+        glColor3f(color.red, color.green, color.blue);
         glVertex2f(-0.5f, 0.7f);
-        glColor3f(red, green, blue);
+        glColor3f(color.red, color.green, color.blue);
         glVertex2f(0.5f, 0.7f);
-        glColor3f(red, green, blue);
+        glColor3f(color.red, color.green, color.blue);
         glVertex2f(0.5f, 0.9f);
-        glColor3f(red, green, blue);
+        glColor3f(color.red, color.green, color.blue);
         glVertex2f(-0.5f, 0.7f);
-        glColor3f(red, green, blue);
+        glColor3f(color.red, color.green, color.blue);
         glVertex2f(-0.5f, 0.9f);
-        glColor3f(red, green, blue);
+        glColor3f(color.red, color.green, color.blue);
         glVertex2f(0.5f, 0.9f);
     }
     if (num != 2)
     {
-        glColor3f(red, green, blue);
+        glColor3f(color.red, color.green, color.blue);
         glVertex2f(0.3f, -0.9f);
-        glColor3f(red, green, blue);
+        glColor3f(color.red, color.green, color.blue);
         glVertex2f(0.5f, -0.9f);
-        glColor3f(red, green, blue);
+        glColor3f(color.red, color.green, color.blue);
         glVertex2f(0.5f, 0.1f);
-        glColor3f(red, green, blue);
+        glColor3f(color.red, color.green, color.blue);
         glVertex2f(0.3f, -0.9f);
-        glColor3f(red, green, blue);
+        glColor3f(color.red, color.green, color.blue);
         glVertex2f(0.3f, 0.1f);
-        glColor3f(red, green, blue);
+        glColor3f(color.red, color.green, color.blue);
         glVertex2f(0.5f, 0.1f);
     }
     if (num == 2 || num == 6 || num == 8 || num == 0)
     {
-        glColor3f(red, green, blue);
+        glColor3f(color.red, color.green, color.blue);
         glVertex2f(-0.3f, -0.9f);
-        glColor3f(red, green, blue);
+        glColor3f(color.red, color.green, color.blue);
         glVertex2f(-0.5f, -0.9f);
-        glColor3f(red, green, blue);
+        glColor3f(color.red, color.green, color.blue);
         glVertex2f(-0.5f, 0.1f);
-        glColor3f(red, green, blue);
+        glColor3f(color.red, color.green, color.blue);
         glVertex2f(-0.3f, -0.9f);
-        glColor3f(red, green, blue);
+        glColor3f(color.red, color.green, color.blue);
         glVertex2f(-0.3f, 0.1f);
-        glColor3f(red, green, blue);
+        glColor3f(color.red, color.green, color.blue);
         glVertex2f(-0.5f, 0.1f);
     }
     if (num != 5 && num != 6)
     {
-        glColor3f(red, green, blue);
+        glColor3f(color.red, color.green, color.blue);
         glVertex2f(0.3f, 0.9f);
-        glColor3f(red, green, blue);
+        glColor3f(color.red, color.green, color.blue);
         glVertex2f(0.5f, 0.9f);
-        glColor3f(red, green, blue);
+        glColor3f(color.red, color.green, color.blue);
         glVertex2f(0.5f, -0.1f);
-        glColor3f(red, green, blue);
+        glColor3f(color.red, color.green, color.blue);
         glVertex2f(0.3f, 0.9f);
-        glColor3f(red, green, blue);
+        glColor3f(color.red, color.green, color.blue);
         glVertex2f(0.3f, -0.1f);
-        glColor3f(red, green, blue);
+        glColor3f(color.red, color.green, color.blue);
         glVertex2f(0.5f, -0.1f);
     }
     if (num == 4 || num == 5 || num == 6 || num == 8 || num == 0)
     {
-        glColor3f(red, green, blue);
+        glColor3f(color.red, color.green, color.blue);
         glVertex2f(-0.3f, 0.9f);
-        glColor3f(red, green, blue);
+        glColor3f(color.red, color.green, color.blue);
         glVertex2f(-0.5f, 0.9f);
-        glColor3f(red, green, blue);
+        glColor3f(color.red, color.green, color.blue);
         glVertex2f(-0.5f, -0.1f);
-        glColor3f(red, green, blue);
+        glColor3f(color.red, color.green, color.blue);
         glVertex2f(-0.3f, 0.9f);
-        glColor3f(red, green, blue);
+        glColor3f(color.red, color.green, color.blue);
         glVertex2f(-0.3f, -0.1f);
-        glColor3f(red, green, blue);
+        glColor3f(color.red, color.green, color.blue);
         glVertex2f(-0.5f, -0.1f);
     }
     glEnd();
